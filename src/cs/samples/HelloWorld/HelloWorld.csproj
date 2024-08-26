@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Tracy-CSharp" Version="2023.10.21" />
+    <PackageReference Include="tracy-csharp-godot" Version="2024.08.26" />
   </ItemGroup>
 
 </Project>
