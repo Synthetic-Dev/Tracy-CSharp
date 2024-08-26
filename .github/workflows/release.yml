@@ -1,62 +1,60 @@
 name: "Release"
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: Version of the package  
-        required: true
-        default: '0.0.0'
-  schedule:
-    - cron: "0 0 1 * *" # First day of every month
+    workflow_dispatch:
+        inputs:
+            version:
+                description: Version of the package
+                required: true
+                default: "0.0.0"
+    # schedule:
+    #   - cron: "0 0 1 * *" # First day of every month
 
 jobs:
+    build-job:
+        name: "Build"
+        uses: "./.github/workflows/build.yml"
 
-  build-job:
-    name: "Build"
-    uses: "./.github/workflows/build.yml"
+    release-job:
+        name: "Release"
+        needs: [build-job]
+        runs-on: ubuntu-20.04
+        permissions:
+            contents: write
+        steps:
+            - name: "Clone Git repository"
+              uses: actions/checkout@master
+              with:
+                  submodules: "recursive"
 
-  release-job:
-    name: "Release"
-    needs: [build-job]
-    runs-on: ubuntu-20.04
-    permissions:
-      contents: write
-    steps:
+            - name: "Download native libraries (win-x64)"
+              uses: actions/download-artifact@v1
+              with:
+                  name: "native-libraries-win-x64"
+                  path: "./lib"
 
-      - name: "Clone Git repository"
-        uses: actions/checkout@master
-        with:
-          submodules: "recursive"
+            - name: "Download native libraries (osx)"
+              uses: actions/download-artifact@v1
+              with:
+                  name: "native-libraries-osx"
+                  path: "./lib"
 
-      - name: "Download native libraries (win-x64)"
-        uses: actions/download-artifact@v1
-        with:
-          name: "native-libraries-win-x64"
-          path: "./lib"
+            - name: "Download native libraries (linux-x64)"
+              uses: actions/download-artifact@v1
+              with:
+                  name: "native-libraries-linux-x64"
+                  path: "./lib"
 
-      - name: "Download native libraries (osx)"
-        uses: actions/download-artifact@v1
-        with:
-          name: "native-libraries-osx"
-          path: "./lib"
+            - name: ".NET pack"
+              run: dotnet pack "./src/cs" --nologo --verbosity minimal --configuration Release -p:PackageVersion="${{ github.event.inputs.version }}" -p:RepositoryBranch="${{ github.head_ref || github.ref_name }}" -p:RepositoryCommit="${{ github.sha }}"
 
-      - name: "Download native libraries (linux-x64)"
-        uses: actions/download-artifact@v1
-        with:
-          name: "native-libraries-linux-x64"
-          path: "./lib"
+            - name: "Upload packages to NuGet"
+              env:
+                  NUGET_ACCESS_TOKEN: ${{ secrets.NUGET_ACCESS_TOKEN }}
+              run: dotnet nuget push "./src/cs/production/**/*.nupkg" --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key $NUGET_ACCESS_TOKEN
 
-      - name: ".NET pack"
-        run: dotnet pack "./src/cs" --nologo --verbosity minimal --configuration Release -p:PackageVersion="${{ github.event.inputs.version }}" -p:RepositoryBranch="${{ github.head_ref || github.ref_name }}" -p:RepositoryCommit="${{ github.sha }}"
-
-      - name: "Upload packages to NuGet"
-        env:
-          NUGET_ACCESS_TOKEN: ${{ secrets.NUGET_ACCESS_TOKEN }}
-        run: dotnet nuget push "./src/cs/production/**/*.nupkg" --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key $NUGET_ACCESS_TOKEN
-
-      - name: "Create tag and GitHub release" 
-        uses: softprops/action-gh-release@v1
-        with:
-          generate_release_notes: true
-          prerelease: false
-          tag_name: "v${{ github.event.inputs.version }}"
+            - name: "Create tag and GitHub release"
+              uses: softprops/action-gh-release@v1
+              with:
+                  generate_release_notes: true
+                  prerelease: false
+                  tag_name: "v${{ github.event.inputs.version }}"
