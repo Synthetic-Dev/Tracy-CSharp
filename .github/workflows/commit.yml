@@ -26,6 +26,6 @@ jobs:
             - name: "Add + commit + push (if necessary)"
               uses: EndBug/add-and-commit@v7
               with:
-                  author_name: "clibequilibrium"
-                  author_email: "clibequilibrium@users.noreply.github.com"
+                  author_name: "Synthetic-Dev"
+                  author_email: "Synthetic-Dev@users.noreply.github.com"
                   message: "Update C# bindings"
