@@ -11,7 +11,7 @@ C# bindings for https://github.com/wolfpld/tracy with native dynamic link librar
 ## Get it from [NuGet](https://www.nuget.org/packages/tracy-csharp-godot)
 
 ```bash
-dotnet add package tracy-csharp-godot --version 0.10.0.2
+dotnet add package tracy-csharp-godot --version 0.1.0
 ```
 
 ## From source
