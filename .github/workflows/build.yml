@@ -1,96 +1,93 @@
 name: "Build"
 
 on:
-  workflow_dispatch:
-  workflow_call:
-  push:
-    tags:
-      - v*
-    branches:
-      - main
-    paths-ignore:
-      - "**.md"
+    workflow_dispatch:
+    workflow_call:
+    push:
+        tags:
+            - v*
+        branches:
+            - main
+        paths-ignore:
+            - "**.md"
 
 jobs:
+    native-job:
+        name: "Build native libraries: ${{ matrix.platform.rid }}"
+        runs-on: ${{ matrix.platform.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                platform:
+                    - { name: Windows (x64), os: windows-2022, rid: win-x64 }
+                    # - { name: macOS (x64 + arm64), os: macos-11, rid: osx }
+                    - { name: Linux (x64), os: ubuntu-20.04, rid: linux-x64 }
+        steps:
+            - name: "Clone Git repository"
+              uses: actions/checkout@master
+              with:
+                  submodules: "recursive"
 
-  native-job:
-    name: "Build native libraries: ${{ matrix.platform.rid }}"
-    runs-on: ${{ matrix.platform.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        platform:
-          - { name: Windows (x64), os: windows-2022, rid: win-x64 }
-          - { name: macOS (x64 + arm64), os: macos-11, rid: osx }
-          - { name: Linux (x64), os: ubuntu-20.04, rid: linux-x64 }
-    steps:
+            - name: "Install C2CS"
+              shell: bash
+              run: dotnet tool install --global bottlenoselabs.C2CS.Tool
 
-      - name: "Clone Git repository"
-        uses: actions/checkout@master
-        with:
-          submodules: "recursive"
+            - name: "Get C2CS version"
+              shell: bash
+              run: echo "C2CS_VERSION=$(c2cs --version)" >> $GITHUB_ENV
 
-      - name: "Install C2CS"
-        shell: bash
-        run: dotnet tool install --global bottlenoselabs.C2CS.Tool
+            - name: "Cache native libraries"
+              id: cache-libs
+              uses: actions/cache@v3
+              with:
+                  path: "./lib"
+                  key: "libs-${{ matrix.platform.rid }}-${{ hashFiles('ext/Tracy/**/*') }}-${{ hashFiles('src/c/**/*') }}-${{ hashFiles('bindgen/**/*') }}-${{ env.C2CS_VERSION }}"
 
-      - name: "Get C2CS version"
-        shell: bash
-        run: echo "C2CS_VERSION=$(c2cs --version)" >> $GITHUB_ENV
+            - name: "Build native libraries"
+              if: steps.cache-libs.outputs.cache-hit != 'true'
+              shell: bash
+              run: ./library.sh "auto"
 
-      - name: "Cache native libraries"
-        id: cache-libs
-        uses: actions/cache@v3
-        with:
-          path: "./lib"
-          key: "libs-${{ matrix.platform.rid }}-${{ hashFiles('ext/Tracy/**/*') }}-${{ hashFiles('src/c/**/*') }}-${{ hashFiles('bindgen/**/*') }}-${{ env.C2CS_VERSION }}"
+            - name: "Upload native libraries"
+              uses: actions/upload-artifact@v2
+              with:
+                  path: "./lib"
+                  name: "native-libraries-${{ matrix.platform.rid }}"
 
-      - name: "Build native libraries"
-        if: steps.cache-libs.outputs.cache-hit != 'true'
-        shell: bash
-        run: ./library.sh "auto"
+    dotnet-job:
+        name: "Build .NET solution"
+        needs: [native-job]
+        runs-on: ubuntu-20.04
+        steps:
+            - name: "Clone Git repository"
+              uses: actions/checkout@master
+              with:
+                  submodules: "true"
 
-      - name: "Upload native libraries"
-        uses: actions/upload-artifact@v2
-        with:
-          path: "./lib"
-          name: "native-libraries-${{ matrix.platform.rid }}"
+            - name: "Download native libraries (win-x64)"
+              uses: actions/download-artifact@v1
+              with:
+                  name: "native-libraries-win-x64"
+                  path: "./lib"
 
-  dotnet-job:
-    name: "Build .NET solution"
-    needs: [native-job]
-    runs-on: ubuntu-20.04
-    steps:
+            - name: "Download native libraries (osx)"
+              uses: actions/download-artifact@v1
+              with:
+                  name: "native-libraries-osx"
+                  path: "./lib"
 
-      - name: "Clone Git repository"
-        uses: actions/checkout@master
-        with:
-          submodules: 'true'
+            - name: "Download native libraries (linux-x64)"
+              uses: actions/download-artifact@v1
+              with:
+                  name: "native-libraries-linux-x64"
+                  path: "./lib"
 
-      - name: "Download native libraries (win-x64)"
-        uses: actions/download-artifact@v1
-        with:
-          name: "native-libraries-win-x64"
-          path: "./lib"
+            - name: "Download generated C# code"
+              uses: actions/download-artifact@v1
+              continue-on-error: true
+              with:
+                  name: "bindgen-cs"
+                  path: "./src/cs/production/Tracy/Generated"
 
-      - name: "Download native libraries (osx)"
-        uses: actions/download-artifact@v1
-        with:
-          name: "native-libraries-osx"
-          path: "./lib"
-
-      - name: "Download native libraries (linux-x64)"
-        uses: actions/download-artifact@v1
-        with:
-          name: "native-libraries-linux-x64"
-          path: "./lib"
-
-      - name: "Download generated C# code"
-        uses: actions/download-artifact@v1
-        continue-on-error: true
-        with:
-          name: "bindgen-cs"
-          path: "./src/cs/production/Tracy/Generated"
-
-      - name: ".NET Build"
-        run: dotnet build "./src/cs" --nologo --verbosity minimal --configuration Release -p:PackageVersion="$(date +'%Y.%m.%d')"
+            - name: ".NET Build"
+              run: dotnet build "./src/cs" --nologo --verbosity minimal --configuration Release -p:PackageVersion="$(date +'%Y.%m.%d')"
