@@ -10,6 +10,9 @@
 # C# packages
 /nupkg/
 
+# NuGet key
+nuget.key
+
 # Native libraries
 /lib/
 
