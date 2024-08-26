@@ -56,11 +56,11 @@ jobs:
                   name: "ast-win"
                   path: "./bindgen/ast"
 
-            - name: "Download C code platform abstract syntax trees (osx)"
-              uses: actions/download-artifact@v4
-              with:
-                  name: "ast-osx"
-                  path: "./bindgen/ast"
+            # - name: "Download C code platform abstract syntax trees (osx)"
+            #   uses: actions/download-artifact@v4
+            #   with:
+            #       name: "ast-osx"
+            #       path: "./bindgen/ast"
 
             - name: "Download C code platform abstract syntax trees (linux)"
               uses: actions/download-artifact@v4
