@@ -17,7 +17,7 @@ jobs:
 
         steps:
             - name: "Clone Git repository"
-              uses: actions/checkout@v2
+              uses: actions/checkout@v4
               with:
                   submodules: "true"
 
@@ -34,7 +34,7 @@ jobs:
               run: cd ./bindgen && ./extract.sh
 
             - name: "Upload C code platform abstract syntax trees"
-              uses: actions/upload-artifact@v2
+              uses: actions/upload-artifact@v4
               with:
                   name: "ast-${{ matrix.platform.rid }}"
                   path: "./bindgen/ast"
@@ -46,24 +46,24 @@ jobs:
 
         steps:
             - name: "Clone Git repository"
-              uses: actions/checkout@v2
+              uses: actions/checkout@v4
               with:
                   submodules: "false"
 
             - name: "Download C code platform abstract syntax trees (win)"
-              uses: actions/download-artifact@v1
+              uses: actions/download-artifact@v4
               with:
                   name: "ast-win"
                   path: "./bindgen/ast"
 
             - name: "Download C code platform abstract syntax trees (osx)"
-              uses: actions/download-artifact@v1
+              uses: actions/download-artifact@v4
               with:
                   name: "ast-osx"
                   path: "./bindgen/ast"
 
             - name: "Download C code platform abstract syntax trees (linux)"
-              uses: actions/download-artifact@v1
+              uses: actions/download-artifact@v4
               with:
                   name: "ast-linux"
                   path: "./bindgen/ast"
@@ -77,7 +77,7 @@ jobs:
               run: cd ./bindgen && ./merge.sh
 
             - name: "Upload cross-platform AST"
-              uses: actions/upload-artifact@v2
+              uses: actions/upload-artifact@v4
               with:
                   name: "ast-cross-platform"
                   path: "./bindgen/x-ast/ast-cross-platform.json"
@@ -89,12 +89,12 @@ jobs:
 
         steps:
             - name: "Clone Git repository"
-              uses: actions/checkout@v2
+              uses: actions/checkout@v4
               with:
                   submodules: "false"
 
             - name: "Download C code cross-platform abstract syntax tree"
-              uses: actions/download-artifact@v1
+              uses: actions/download-artifact@v4
               with:
                   name: "ast-cross-platform"
                   path: "./bindgen/x-ast"
@@ -108,7 +108,7 @@ jobs:
               run: cd ./bindgen && ./generate.sh
 
             - name: "Upload generated C# code"
-              uses: actions/upload-artifact@v2
+              uses: actions/upload-artifact@v4
               with:
                   name: "bindgen-cs"
                   path: "./src/cs/production/Tracy/Generated"

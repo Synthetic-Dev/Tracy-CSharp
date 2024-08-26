@@ -24,7 +24,7 @@ jobs:
                     - { name: Linux (x64), os: ubuntu-20.04, rid: linux-x64 }
         steps:
             - name: "Clone Git repository"
-              uses: actions/checkout@master
+              uses: actions/checkout@v4
               with:
                   submodules: "recursive"
 
@@ -49,7 +49,7 @@ jobs:
               run: ./library.sh "auto"
 
             - name: "Upload native libraries"
-              uses: actions/upload-artifact@v2
+              uses: actions/upload-artifact@v4
               with:
                   path: "./lib"
                   name: "native-libraries-${{ matrix.platform.rid }}"
@@ -60,30 +60,30 @@ jobs:
         runs-on: ubuntu-20.04
         steps:
             - name: "Clone Git repository"
-              uses: actions/checkout@master
+              uses: actions/checkout@v4
               with:
                   submodules: "true"
 
             - name: "Download native libraries (win-x64)"
-              uses: actions/download-artifact@v1
+              uses: actions/download-artifact@v4
               with:
                   name: "native-libraries-win-x64"
                   path: "./lib"
 
             - name: "Download native libraries (osx)"
-              uses: actions/download-artifact@v1
+              uses: actions/download-artifact@v4
               with:
                   name: "native-libraries-osx"
                   path: "./lib"
 
             - name: "Download native libraries (linux-x64)"
-              uses: actions/download-artifact@v1
+              uses: actions/download-artifact@v4
               with:
                   name: "native-libraries-linux-x64"
                   path: "./lib"
 
             - name: "Download generated C# code"
-              uses: actions/download-artifact@v1
+              uses: actions/download-artifact@v4
               continue-on-error: true
               with:
                   name: "bindgen-cs"
