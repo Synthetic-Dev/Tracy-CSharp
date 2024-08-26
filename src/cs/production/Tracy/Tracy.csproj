@@ -11,9 +11,9 @@
     <!-- NuGet settings -->
     <PropertyGroup>
         <IsPackable>true</IsPackable>
-        <PackageId>Tracy-CSharp</PackageId>
-        <PackageDescription>C# interop bindings for https://github.com/wolfpld/tracy.</PackageDescription>
-        <RepositoryUrl>https://github.com/clibequilibrium/Tracy-CSharp</RepositoryUrl>
+        <PackageId>tracy-csharp-godot</PackageId>
+        <PackageDescription>C# interop bindings for https://github.com/wolfpld/tracy made to work with Godot.</PackageDescription>
+        <RepositoryUrl>https://github.com/Synthetic-Dev/tracy-csharp-godot</RepositoryUrl>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageReadmeFile>_README_PACKAGE.md</PackageReadmeFile>
     </PropertyGroup>
